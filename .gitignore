@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.firebase/
+firebase-debug.log
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
