@@ -65,14 +65,13 @@ export const RequiredPage = () => {
     const message = arrivals.length === 1
       ? `New requirement from ${getShopName(arrivals[0].requestingShopId)}.`
       : `${arrivals.length} new requirements from ${getShopName(arrivals[0].requestingShopId)}.`;
-    toast(message, 'outgoing');
     void sendStaffMobileAlert({
       title: arrivals.length === 1 ? 'New requirement' : 'New requirements',
       body: message,
       tag: `required-${arrivals.map((requirement) => requirement.id).join('-')}`,
       path: '/required'
     });
-  }, [actingShopId, loading, profile?.role, requirements, toast]);
+  }, [actingShopId, loading, profile?.role, requirements]);
 
   const rows = useMemo(() => {
     const term = normalizeProductName(search);
@@ -104,7 +103,6 @@ export const RequiredPage = () => {
     if (profile?.role === 'staff' && profile.uid) {
       setDismissedKeys(dismissOtherShopRequirement(profile.uid, requirement));
     }
-    toast('Left for company ordering.', 'outgoing');
   };
 
   return (

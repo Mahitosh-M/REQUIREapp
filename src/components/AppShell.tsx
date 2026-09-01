@@ -74,8 +74,7 @@ export const AppShell = () => {
   useStaffMobileAlerts({
     staffShopId: isStaff ? actingShopId : null,
     listenForRequired: isStaff && location.pathname !== '/required',
-    listenForIncoming: isStaff && location.pathname !== '/incoming',
-    notify: toast
+    listenForIncoming: isStaff && location.pathname !== '/incoming'
   });
 
   useEffect(() => {

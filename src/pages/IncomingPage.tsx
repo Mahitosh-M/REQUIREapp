@@ -32,7 +32,6 @@ export const IncomingPage = () => {
       : arrival.sourceShopId
         ? `New item incoming from ${getShopName(arrival.sourceShopId)}.`
         : 'New item moved to Incoming.';
-    toast(message, 'incoming');
     if (profile?.role === 'staff') {
       void sendStaffMobileAlert({
         title: 'New incoming item',
@@ -41,7 +40,7 @@ export const IncomingPage = () => {
         path: '/incoming'
       });
     }
-  }, [loading, profile?.role, requirements, toast]);
+  }, [loading, profile?.role, requirements]);
 
   const complete = async () => {
     if (!confirming) return;
@@ -52,7 +51,6 @@ export const IncomingPage = () => {
         toast('Receipt confirmed. Requirement finished.');
       } else {
         await markRequirementNotReceived(confirming.requirement.id);
-        toast(`Returned to ${getShopName(confirming.requirement.sourceShopId!)} To Send.`, 'returning');
       }
       setConfirming(null);
     } catch (actionError) {

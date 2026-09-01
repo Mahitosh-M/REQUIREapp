@@ -5,9 +5,6 @@ import {
   LoaderCircle,
   Package,
   PackageCheck,
-  PlaneLanding,
-  PlaneTakeoff,
-  RotateCcw,
   Search,
   Store,
   X
@@ -15,14 +12,11 @@ import {
 import { createContext, useContext, useEffect, useId, useState, type ReactNode } from 'react';
 import type { Company, Product, Requirement } from '../types';
 
-export type ToastTone = 'success' | 'error' | 'info' | 'created' | 'outgoing' | 'incoming' | 'returning';
+export type ToastTone = 'success' | 'error' | 'info' | 'created';
 interface Toast { id: number; message: string; tone: ToastTone }
 const ToastContext = createContext<(message: string, tone?: ToastTone) => void>(() => undefined);
 
 const toastIcon = (tone: ToastTone) => {
-  if (tone === 'outgoing') return <PlaneTakeoff size={19} />;
-  if (tone === 'incoming') return <PlaneLanding size={19} />;
-  if (tone === 'returning') return <RotateCcw size={19} />;
   if (tone === 'created') return <PackageCheck size={19} />;
   return tone === 'success' ? <Check size={18} /> : <AlertCircle size={18} />;
 };

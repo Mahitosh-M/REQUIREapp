@@ -1,5 +1,5 @@
 import { PackageX, PlaneTakeoff, Send } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { ConfirmDialog, EmptyState, ErrorState, LoadingState, PageHeader, RequirementCard, useToast } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { useCatalogue } from '../context/CatalogueContext';
@@ -14,24 +14,12 @@ export const ToSendPage = () => {
   const { requirements, products, loading, error } = useRequirements('to_send', actingShopId);
   const [confirming, setConfirming] = useState<Requirement | null>(null);
   const [busyId, setBusyId] = useState('');
-  const knownToSendIds = useRef<Set<string> | null>(null);
   const toast = useToast();
-
-  useEffect(() => {
-    if (loading) return;
-    const nextIds = new Set(requirements.map((requirement) => requirement.id));
-    const previousIds = knownToSendIds.current;
-    knownToSendIds.current = nextIds;
-    if (!previousIds) return;
-    const returned = requirements.find((requirement) => !previousIds.has(requirement.id));
-    if (returned?.destinationShopId) toast(`Item returned by ${getShopName(returned.destinationShopId)}.`, 'returning');
-  }, [loading, requirements, toast]);
 
   const sent = async (requirement: Requirement) => {
     setBusyId(requirement.id);
     try {
       await markRequirementSent(requirement.id);
-      toast(`Sent to ${getShopName(requirement.destinationShopId!)}.`, 'outgoing');
     } catch (actionError) {
       toast(getFriendlyDataError(actionError), 'error');
     } finally {

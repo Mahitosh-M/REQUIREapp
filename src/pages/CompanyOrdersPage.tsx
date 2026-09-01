@@ -54,7 +54,6 @@ export const CompanyOrdersPage = () => {
         delete next[requirement.id];
         return next;
       });
-      toast(`${getShopName(requirement.requestingShopId)} order moved to Incoming.`, 'incoming');
     } catch (actionError) {
       toast(getFriendlyDataError(actionError), 'error');
     } finally {

@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import type { ToastTone } from '../components/ui';
 import {
   listenIncomingRequirements,
   listenRequiredRequirementsForShop
@@ -13,22 +12,15 @@ interface StaffMobileAlertOptions {
   staffShopId: ShopId | null;
   listenForRequired: boolean;
   listenForIncoming: boolean;
-  notify: (message: string, tone?: ToastTone) => void;
 }
 
 export const useStaffMobileAlerts = ({
   staffShopId,
   listenForRequired,
-  listenForIncoming,
-  notify
+  listenForIncoming
 }: StaffMobileAlertOptions) => {
-  const notifyRef = useRef(notify);
   const requiredIds = useRef<Set<string> | null>(null);
   const incomingIds = useRef<Set<string> | null>(null);
-
-  useEffect(() => {
-    notifyRef.current = notify;
-  }, [notify]);
 
   useEffect(() => {
     requiredIds.current = null;
@@ -44,7 +36,6 @@ export const useStaffMobileAlerts = ({
         const message = addedRows.length === 1
           ? `New requirement from ${getShopName(addedRows[0].requestingShopId)}.`
           : `${addedRows.length} new requirements from ${getShopName(addedRows[0].requestingShopId)}.`;
-        notifyRef.current(message, 'outgoing');
         void sendStaffMobileAlert({
           title: addedRows.length === 1 ? 'New requirement' : 'New requirements',
           body: message,
@@ -74,7 +65,6 @@ export const useStaffMobileAlerts = ({
         const message = addedRows.length === 1
           ? `New item is coming from ${sourceName}.`
           : `${addedRows.length} new items are coming.`;
-        notifyRef.current(message, 'incoming');
         void sendStaffMobileAlert({
           title: addedRows.length === 1 ? 'New incoming item' : 'New incoming items',
           body: message,
