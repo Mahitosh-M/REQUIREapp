@@ -1,0 +1,18 @@
+{
+  "name": "REQUIRE Shop Requirements",
+  "short_name": "REQUIRE",
+  "description": "Two-shop product requirement workflow",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07060b",
+  "theme_color": "#111837",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

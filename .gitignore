@@ -3,6 +3,7 @@ dist/
 *.tsbuildinfo
 .firebase/
 firebase-debug.log
+firestore-debug.log
 *.local
 .env
 .env.*
@@ -11,3 +12,5 @@ firebase-debug.log
 Thumbs.db
 .vscode/
 .idea/
+firestore-analysis.local.md
+firestore-rules-audit.local.json

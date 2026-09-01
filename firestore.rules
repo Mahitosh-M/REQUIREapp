@@ -1,0 +1,385 @@
+rules_version = '2';
+
+// REQUIREapp stores active operational data only. Requirements are deleted
+// after receipt; no inventory, accounting, or permanent history is stored.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userPath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
+    function hasProfile() {
+      return signedIn() && exists(userPath());
+    }
+
+    function profile() {
+      return get(userPath()).data;
+    }
+
+    function isActiveUser() {
+      return hasProfile() && profile().active == true;
+    }
+
+    function isAdmin() {
+      return isActiveUser() && profile().role == 'admin';
+    }
+
+    function isStaff() {
+      return isActiveUser() && profile().role == 'staff';
+    }
+
+    function validShopId(shopId) {
+      return shopId in ['SHOP_A', 'SHOP_B'];
+    }
+
+    function actorShopId() {
+      return profile().shopId;
+    }
+
+    function validUser(data, userId) {
+      return data.keys().hasOnly([
+          'uid', 'email', 'name', 'role', 'shopId', 'active', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll([
+          'uid', 'email', 'name', 'role', 'shopId', 'active', 'createdAt', 'updatedAt'
+        ])
+        && data.uid == userId
+        && data.uid is string
+        && data.uid.size() > 0
+        && data.uid.size() <= 160
+        && data.email is string
+        && data.email.size() > 3
+        && data.email.size() <= 254
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 120
+        && data.role in ['admin', 'staff']
+        && (data.shopId == null || validShopId(data.shopId))
+        && (data.role == 'admin' || validShopId(data.shopId))
+        && data.active is bool
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function validCompany(data) {
+      return data.keys().hasOnly([
+          'name', 'normalizedName', 'active', 'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll([
+          'name', 'normalizedName', 'active', 'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 120
+        && data.normalizedName is string
+        && data.normalizedName.size() > 0
+        && data.normalizedName.size() <= 120
+        && data.active is bool
+        && data.createdBy is string
+        && data.createdBy.size() > 0
+        && data.createdBy.size() <= 160
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function validProduct(data) {
+      return data.keys().hasOnly([
+          'companyId', 'name', 'normalizedName', 'packaging', 'normalizedPackaging',
+          'catalogueKey', 'reviewStatus', 'createdBy', 'createdByShopId', 'active',
+          'mergedIntoProductId', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll([
+          'companyId', 'name', 'normalizedName', 'packaging', 'normalizedPackaging',
+          'catalogueKey', 'reviewStatus', 'createdBy', 'createdByShopId', 'active',
+          'createdAt', 'updatedAt'
+        ])
+        && data.companyId is string
+        && data.companyId.size() > 0
+        && data.companyId.size() <= 160
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 160
+        && data.normalizedName is string
+        && data.normalizedName.size() > 0
+        && data.normalizedName.size() <= 160
+        && data.packaging is string
+        && data.packaging.size() > 0
+        && data.packaging.size() <= 100
+        && data.normalizedPackaging is string
+        && data.normalizedPackaging.size() > 0
+        && data.normalizedPackaging.size() <= 100
+        && data.catalogueKey is string
+        && data.catalogueKey.size() > 2
+        && data.catalogueKey.size() <= 280
+        && data.reviewStatus in ['approved', 'pending']
+        && data.createdBy is string
+        && data.createdBy.size() > 0
+        && data.createdBy.size() <= 160
+        && (data.createdByShopId == null || validShopId(data.createdByShopId))
+        && data.active is bool
+        && (!('mergedIntoProductId' in data)
+          || (data.mergedIntoProductId is string
+            && data.mergedIntoProductId.size() > 0
+            && data.mergedIntoProductId.size() <= 160
+            && data.active == false))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function productPath(productId) {
+      return /databases/$(database)/documents/products/$(productId);
+    }
+
+    function requirementPath(shopId, productId) {
+      return /databases/$(database)/documents/requirements/$(shopId + '_' + productId);
+    }
+
+    function validRequirement(data, requirementId) {
+      return data.keys().hasOnly([
+          'productId', 'requestingShopId', 'quantityReference', 'status',
+          'sourceShopId', 'destinationShopId', 'companyOrderQuantityReference',
+          'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll([
+          'productId', 'requestingShopId', 'quantityReference', 'status',
+          'sourceShopId', 'destinationShopId', 'createdBy', 'createdAt', 'updatedAt'
+        ])
+        && data.productId is string
+        && data.productId.size() > 0
+        && data.productId.size() <= 160
+        && validShopId(data.requestingShopId)
+        && requirementId == data.requestingShopId + '_' + data.productId
+        && data.quantityReference is string
+        && data.quantityReference.size() > 0
+        && data.quantityReference.size() <= 40
+        && data.status in ['required', 'to_send', 'incoming']
+        && (
+          (data.status == 'required'
+            && data.sourceShopId == null
+            && data.destinationShopId == null
+            && !('companyOrderQuantityReference' in data))
+          || (data.status in ['to_send', 'incoming']
+            && validShopId(data.sourceShopId)
+            && data.sourceShopId != data.requestingShopId
+            && data.destinationShopId == data.requestingShopId
+            && !('companyOrderQuantityReference' in data))
+          || (data.status == 'incoming'
+            && data.sourceShopId == null
+            && data.destinationShopId == data.requestingShopId
+            && 'companyOrderQuantityReference' in data
+            && data.companyOrderQuantityReference is string
+            && data.companyOrderQuantityReference.size() > 0
+            && data.companyOrderQuantityReference.size() <= 40)
+        )
+        && data.createdBy is string
+        && data.createdBy.size() > 0
+        && data.createdBy.size() <= 160
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function immutableRequirementFields() {
+      return request.resource.data.productId == resource.data.productId
+        && request.resource.data.requestingShopId == resource.data.requestingShopId
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    function validStaffRequirementCreate(requirementId) {
+      let productAfter = getAfter(productPath(request.resource.data.productId));
+      return isStaff()
+        && request.resource.data.requestingShopId == actorShopId()
+        && request.resource.data.status == 'required'
+        && request.resource.data.sourceShopId == null
+        && request.resource.data.destinationShopId == null
+        && !('companyOrderQuantityReference' in request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && existsAfter(productPath(request.resource.data.productId))
+        && productAfter.data.active == true;
+    }
+
+    function validAdminRequirementCreate() {
+      let productAfter = getAfter(productPath(request.resource.data.productId));
+      return isAdmin()
+        && request.resource.data.updatedAt == request.time
+        && existsAfter(productPath(request.resource.data.productId))
+        && productAfter.data.active == true;
+    }
+
+    function validQuantityUpdate() {
+      return isStaff()
+        && resource.data.requestingShopId == actorShopId()
+        && immutableRequirementFields()
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.sourceShopId == resource.data.sourceShopId
+        && request.resource.data.destinationShopId == resource.data.destinationShopId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'quantityReference', 'updatedAt'
+        ])
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    function validAvailableTransition() {
+      return isStaff()
+        && resource.data.status == 'required'
+        && resource.data.requestingShopId != actorShopId()
+        && request.resource.data.status == 'to_send'
+        && request.resource.data.sourceShopId == actorShopId()
+        && request.resource.data.destinationShopId == resource.data.requestingShopId
+        && !exists(requirementPath(actorShopId(), resource.data.productId))
+        && immutableRequirementFields()
+        && request.resource.data.quantityReference == resource.data.quantityReference
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'sourceShopId', 'destinationShopId', 'updatedAt'
+        ])
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    function validNotAvailableTransition() {
+      return isStaff()
+        && resource.data.status == 'to_send'
+        && resource.data.sourceShopId == actorShopId()
+        && request.resource.data.status == 'required'
+        && request.resource.data.sourceShopId == null
+        && request.resource.data.destinationShopId == null
+        && immutableRequirementFields()
+        && request.resource.data.quantityReference == resource.data.quantityReference
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'sourceShopId', 'destinationShopId', 'updatedAt'
+        ])
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    function validSentTransition() {
+      return isStaff()
+        && resource.data.status == 'to_send'
+        && resource.data.sourceShopId == actorShopId()
+        && request.resource.data.status == 'incoming'
+        && request.resource.data.sourceShopId == resource.data.sourceShopId
+        && request.resource.data.destinationShopId == resource.data.requestingShopId
+        && immutableRequirementFields()
+        && request.resource.data.quantityReference == resource.data.quantityReference
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'updatedAt'
+        ])
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    function validNotReceivedTransition() {
+      return isStaff()
+        && resource.data.status == 'incoming'
+        && resource.data.destinationShopId == actorShopId()
+        && resource.data.requestingShopId == actorShopId()
+        && request.resource.data.status == 'to_send'
+        && request.resource.data.sourceShopId == resource.data.sourceShopId
+        && request.resource.data.destinationShopId == resource.data.destinationShopId
+        && immutableRequirementFields()
+        && request.resource.data.quantityReference == resource.data.quantityReference
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'updatedAt'
+        ])
+        && request.resource.data.updatedAt == request.time;
+    }
+
+    match /users/{userId} {
+      allow get: if isActiveUser() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isAdmin()
+        && validUser(request.resource.data, userId)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isAdmin()
+        && validUser(request.resource.data, userId)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && (request.auth.uid != userId
+          || (request.resource.data.role == 'admin' && request.resource.data.active == true));
+      allow delete: if isAdmin() && request.auth.uid != userId;
+    }
+
+    match /companies/{companyId} {
+      allow get: if isActiveUser() && (isAdmin() || resource.data.active == true);
+      allow list: if isActiveUser() && (isAdmin() || resource.data.active == true);
+      allow create: if isAdmin()
+        && validCompany(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update: if isAdmin()
+        && validCompany(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    match /products/{productId} {
+      // Staff transactions check whether a deterministic new-product ID exists
+      // before atomically creating it with its first requirement.
+      allow get: if isActiveUser() && (
+        isAdmin()
+        || !exists(productPath(productId))
+        || resource.data.active == true
+      );
+      allow list: if isActiveUser() && (isAdmin() || resource.data.active == true);
+      allow create: if validProduct(request.resource.data)
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && exists(/databases/$(database)/documents/companies/$(request.resource.data.companyId))
+        && get(/databases/$(database)/documents/companies/$(request.resource.data.companyId)).data.active == true
+        && (
+          isAdmin()
+          || (isStaff()
+            && request.resource.data.reviewStatus == 'pending'
+            && request.resource.data.active == true
+            && request.resource.data.createdByShopId == actorShopId()
+            && !('mergedIntoProductId' in request.resource.data))
+        );
+      allow update: if isAdmin()
+        && validProduct(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdByShopId == resource.data.createdByShopId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && exists(/databases/$(database)/documents/companies/$(request.resource.data.companyId));
+      allow delete: if false;
+    }
+
+    match /requirements/{requirementId} {
+      allow read: if isActiveUser();
+      allow create: if validRequirement(request.resource.data, requirementId)
+        && (validAdminRequirementCreate() || validStaffRequirementCreate(requirementId));
+      allow update: if validRequirement(request.resource.data, requirementId)
+        && (
+          isAdmin()
+          || validQuantityUpdate()
+          || validAvailableTransition()
+          || validNotAvailableTransition()
+          || validSentTransition()
+          || validNotReceivedTransition()
+        );
+      allow delete: if isAdmin()
+        || (isStaff()
+          && resource.data.status == 'incoming'
+          && resource.data.requestingShopId == actorShopId()
+          && resource.data.destinationShopId == actorShopId());
+    }
+
+    match /shops/{shopId} {
+      allow read: if isActiveUser();
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
