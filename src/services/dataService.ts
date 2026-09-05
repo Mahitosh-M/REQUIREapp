@@ -1,7 +1,7 @@
 import {
   collection,
   doc,
-  documentId,
+  getDoc,
   getDocs,
   limit,
   onSnapshot,
@@ -216,12 +216,20 @@ export const getProductsByIds = async (productIds: string[]) => {
 
   for (let index = 0; index < missing.length; index += 30) {
     const ids = missing.slice(index, index + 30);
-    const snapshot = await getDocs(query(
-      collection(db, PRODUCTS),
-      where(documentId(), 'in', ids),
-      where('active', '==', true)
-    ));
-    snapshot.docs.map(mapProduct).forEach((product) => products.set(product.id, product));
+    const snapshots = await Promise.allSettled(ids.map((id) => getDoc(doc(db, PRODUCTS, id))));
+    snapshots.forEach((result) => {
+      if (result.status === 'rejected') {
+        const code = typeof result.reason === 'object' && result.reason !== null && 'code' in result.reason
+          ? String((result.reason as { code?: unknown }).code)
+          : '';
+        if (code === 'permission-denied') return;
+        throw result.reason;
+      }
+      if (result.value.exists() && result.value.data().active === true) {
+        const product = mapProduct(result.value);
+        products.set(product.id, product);
+      }
+    });
   }
   return products;
 };

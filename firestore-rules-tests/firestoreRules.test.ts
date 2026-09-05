@@ -10,7 +10,6 @@ import {
   collection,
   deleteDoc,
   doc,
-  documentId,
   getDoc,
   getDocs,
   orderBy,
@@ -144,11 +143,7 @@ describe('requirement workflow permissions', () => {
       where('status', '==', 'required'),
       orderBy('updatedAt', 'desc')
     )));
-    await assertSucceeds(getDocs(query(
-      collection(staff, 'products'),
-      where(documentId(), 'in', ['product_azee']),
-      where('active', '==', true)
-    )));
+    await assertSucceeds(getDoc(doc(staff, 'products/product_azee')));
     await assertSucceeds(getDocs(query(
       collection(staff, 'companies'),
       where('active', '==', true),
