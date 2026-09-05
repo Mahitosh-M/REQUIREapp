@@ -7,13 +7,19 @@ import {
 } from '@firebase/rules-unit-testing';
 import {
   Timestamp,
+  collection,
   deleteDoc,
   doc,
+  documentId,
   getDoc,
+  getDocs,
+  orderBy,
+  query,
   runTransaction,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
   writeBatch
 } from 'firebase/firestore';
 import { afterAll, beforeAll, beforeEach, describe, it } from 'vitest';
@@ -127,6 +133,29 @@ describe('identity and catalogue permissions', () => {
 });
 
 describe('requirement workflow permissions', () => {
+  it('allows staff to load required items with their active catalogue records', async () => {
+    await environment.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'requirements/SHOP_B_product_azee'), requirement('SHOP_B'));
+    });
+    const staff = environment.authenticatedContext('staff-a').firestore();
+
+    await assertSucceeds(getDocs(query(
+      collection(staff, 'requirements'),
+      where('status', '==', 'required'),
+      orderBy('updatedAt', 'desc')
+    )));
+    await assertSucceeds(getDocs(query(
+      collection(staff, 'products'),
+      where(documentId(), 'in', ['product_azee']),
+      where('active', '==', true)
+    )));
+    await assertSucceeds(getDocs(query(
+      collection(staff, 'companies'),
+      where('active', '==', true),
+      orderBy('normalizedName', 'asc')
+    )));
+  });
+
   it('allows own-shop creation and quantity editing while blocking shop spoofing', async () => {
     const staffA = environment.authenticatedContext('staff-a').firestore();
     const ownPayload = { ...requirement('SHOP_A'), createdAt: serverTimestamp(), updatedAt: serverTimestamp() };
