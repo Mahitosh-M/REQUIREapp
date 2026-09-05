@@ -79,11 +79,11 @@ export const CompanyOrdersPage = () => {
               <div className="company-order__products">
                 {group.products.map(({ product, requirements: productRequirements }) => (
                   <article className="order-product" key={product.id}>
-                    <div className="order-product__heading"><div><h2>{product.name}</h2><span><Package size={15} />{product.packaging}</span></div>{productRequirements.length > 1 ? <span className="dual-shop-badge">Both shops</span> : null}</div>
+                    <div className="order-product__heading"><div className="order-product__identity"><h2>{product.name}</h2><span><Package size={15} />{product.packaging}</span></div>{productRequirements.length > 1 ? <span className="dual-shop-badge">Both shops</span> : null}</div>
                     <div className="shop-quantity-grid">
                       {productRequirements.sort((left, right) => left.requestingShopId.localeCompare(right.requestingShopId)).map((row) => (
                         <div className="company-order-row" key={row.id}>
-                          <div className="company-order-row__request"><span>{getShopName(row.requestingShopId)}</span><strong>Requested {row.quantityReference}</strong></div>
+                          <div className="company-order-row__request"><span>{getShopName(row.requestingShopId)}</span><strong>{row.quantityReference}</strong></div>
                           <label className="company-order-row__quantity">
                             <span>Company will send</span>
                             <input

@@ -3,6 +3,7 @@ import type { Product } from '../types';
 import {
   createCatalogueKey,
   createProductId,
+  formatCatalogueText,
   getDuplicateCandidates,
   normalizePackaging,
   normalizeProductName,
@@ -26,6 +27,11 @@ const product = (id: string, name: string, packaging: string): Product => ({
 });
 
 describe('catalogue normalization', () => {
+  it('formats catalogue labels in uppercase with consistent spacing', () => {
+    expect(formatCatalogueText('  Azee   500  ')).toBe('AZEE 500');
+    expect(formatCatalogueText('10 x 10')).toBe('10 X 10');
+  });
+
   it('normalizes case, whitespace, and common product separators', () => {
     expect(normalizeProductName('  AZEE-500  ')).toBe('azee 500');
     expect(normalizeProductName('Azee   500')).toBe('azee 500');

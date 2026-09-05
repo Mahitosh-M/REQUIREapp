@@ -1,5 +1,7 @@
 :root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
   color: #222745;
   background: #f4f2fb;
   font-synthesis: none;
@@ -234,6 +236,9 @@ input:focus, select:focus, textarea:focus { border-color: var(--brand-2); box-sh
 .order-product { display: grid; gap: 13px; border-bottom: 1px solid #ecebf5; padding: 15px; }
 .order-product:last-child { border-bottom: 0; }
 .order-product__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.order-product__identity { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 7px 10px; }
+.order-product__identity h2 { min-width: 0; }
+.order-product__identity > span { margin-top: 0; }
 .dual-shop-badge { flex: 0 0 auto; border-radius: 5px; color: var(--blue); background: var(--blue-soft); padding: 4px 7px; font-size: 0.67rem; font-weight: 800; }
 .shop-quantity-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .shop-quantity-grid > div { min-width: 0; display: flex; flex-direction: column; border-left: 3px solid var(--brand-2); background: #f6f4fc; padding: 8px 10px; }
@@ -504,7 +509,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--gold); box-shado
 .shop-quantity-grid { grid-template-columns: 1fr; }
 .shop-quantity-grid > .company-order-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(118px, 0.82fr) auto; align-items: end; gap: 10px; border-left-color: var(--gold); background: #191126; padding: 11px; }
 .shop-quantity-grid > .company-order-row:nth-child(2) { border-left-color: var(--blue); }
-.company-order-row__request { min-width: 0; display: flex; flex-direction: column; gap: 3px; padding-bottom: 2px; }
+.company-order-row__request { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 2px; }
 .company-order-row__request strong { margin-top: 0; }
 .company-order-row__quantity { min-width: 0; display: grid; gap: 5px; color: #c8bdd7; font-size: 0.7rem; font-weight: 750; }
 .company-order-row__quantity input { min-height: 40px; padding: 8px 9px; font-size: 0.82rem; }
@@ -521,7 +526,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--gold); box-shado
 .requirement-card__decision-actions { width: 100%; display: grid; gap: 8px; }
 .requirement-card__decision-actions .button { width: 100%; }
 
-.record-stamp { --stamp-color: #5bdd8c; --stamp-ink: #f2fff7; position: absolute; z-index: 2; top: 50%; left: 50%; width: 156px; aspect-ratio: 1; display: block; color: var(--stamp-color); pointer-events: none; transform: translate(-50%, -50%) rotate(-30deg); }
+.record-stamp { --stamp-color: #5bdd8c; --stamp-ink: #f2fff7; position: absolute; z-index: 2; top: 50%; left: 50%; width: 132px; aspect-ratio: 1; display: block; color: var(--stamp-color); pointer-events: none; transform: translate(-50%, -50%) rotate(-30deg); }
 .record-stamp__svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .record-stamp__outer-frame, .record-stamp__secondary-frame { fill: none; stroke: currentColor; }
 .record-stamp__outer-frame { stroke-width: 10; }
@@ -530,22 +535,23 @@ input:focus, select:focus, textarea:focus { border-color: var(--gold); box-shado
 .record-stamp__curve-text { fill: currentColor; font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif; font-size: 31px; font-weight: 950; letter-spacing: 0; }
 .record-stamp__banner-plate { fill: currentColor; stroke: currentColor; stroke-width: 10; }
 .record-stamp__banner-inset { fill: none; stroke: var(--stamp-ink); stroke-width: 3; opacity: 0.82; }
-.record-stamp__banner-text { fill: var(--stamp-ink); font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif; font-size: 48px; font-weight: 950; letter-spacing: 1.5px; paint-order: stroke; stroke: var(--stamp-ink); stroke-width: 1.6px; }
+.record-stamp__banner-text { fill: var(--stamp-ink); font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif; font-size: 48px; font-weight: 950; letter-spacing: 0; paint-order: stroke; stroke: var(--stamp-ink); stroke-width: 1.6px; }
 .record-stamp--urgent { --stamp-color: #f25d66; --stamp-ink: #fff6f7; }
 .record-stamp--incoming { --stamp-color: #5bdd8c; --stamp-ink: #f2fff7; }
 .company-order-quantity { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 0; padding-top: 0; }
 .company-order-quantity span { color: #b7d9c5; font-size: 0.78rem; }
 .company-order-quantity strong { max-width: 65%; overflow-wrap: anywhere; color: #b6f7cd; font-size: 0.9rem; text-align: right; }
 
-.requirement-card--staff-stamped { grid-template-columns: minmax(0, 1fr) minmax(130px, 0.92fr); grid-template-areas: "top stamp" "quantity stamp" "company stamp" "actions stamp"; align-items: start; gap: 12px; }
+.requirement-card--staff-stamped { grid-template-columns: minmax(0, 1fr) 98px; grid-template-areas: "top stamp" "quantity stamp" "company company" "actions actions"; align-items: start; gap: 7px 9px; }
 .requirement-card--staff-stamped .requirement-card__top { grid-area: top; }
-.requirement-card--staff-stamped .record-stamp { position: relative; grid-area: stamp; top: auto; left: auto; width: min(148px, 100%); justify-self: center; align-self: center; transform: rotate(-30deg); }
+.requirement-card--staff-stamped .record-stamp { position: relative; grid-area: stamp; top: auto; left: auto; width: min(96px, 100%); justify-self: end; align-self: start; transform: rotate(-24deg); }
 .requirement-card--staff-stamped .quantity-line { grid-area: quantity; min-height: 44px; justify-content: flex-start; }
 .requirement-card--staff-stamped .quantity-line--value-only strong { color: #ffe095; font-size: 1.05rem; }
 .requirement-card--staff-stamped .company-order-quantity { grid-area: company; align-self: start; flex-direction: column; align-items: flex-start; gap: 4px; }
 .requirement-card--staff-stamped .company-order-quantity strong { max-width: 100%; text-align: left; }
 .requirement-card--staff-stamped .card-actions, .requirement-card--staff-stamped .requirement-card__decision-actions { min-width: 0; max-width: 100%; }
-.requirement-card--staff-stamped .card-actions { display: grid; grid-area: actions; grid-template-columns: minmax(0, 1fr); align-self: start; gap: 8px; padding: 0; }
+.requirement-card--staff-stamped .card-actions { display: grid; grid-area: actions; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; align-self: start; gap: 8px; padding: 0; }
+.requirement-card--staff-stamped .requirement-card__decision-actions { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .requirement-card--staff-stamped .card-actions .button, .requirement-card--staff-stamped .requirement-card__decision-actions .button { width: 100%; min-width: 0; max-width: 100%; min-height: 44px; white-space: normal; overflow-wrap: anywhere; padding-inline: 9px; }
 
 .pull-refresh-indicator { position: absolute; z-index: 29; top: calc(64px + env(safe-area-inset-top)); left: 50%; width: 34px; height: 34px; display: grid; place-items: center; pointer-events: none; border: 1px solid #8061ad; border-radius: 50%; color: #ffe094; background: #211735; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.32); transition: opacity 120ms ease, transform 120ms ease; }
@@ -555,7 +561,31 @@ input:focus, select:focus, textarea:focus { border-color: var(--gold); box-shado
 @media (max-width: 420px) {
   .shop-quantity-grid > .company-order-row { grid-template-columns: 1fr; align-items: stretch; }
   .company-order-row__action { width: 100%; }
-  .record-stamp { width: 136px; }
+  .record-stamp { width: 116px; }
   .record-stamp__curve-text { font-size: 29px; }
   .record-stamp__banner-text { font-size: 41px; }
 }
+
+/* Compact requirement records shared by Required, To Send, and Incoming. */
+.card-grid { gap: 9px; }
+.requirement-card { gap: 9px; padding: 12px 13px; }
+.requirement-card__top { gap: 9px; }
+.product-title h2 { font-size: 1.02rem; line-height: 1.22; }
+.product-details { column-gap: 11px; row-gap: 4px; margin-top: 5px; }
+.product-title .packaging, .company-name { font-size: 0.8rem; }
+.status-badge { min-height: 23px; padding: 3px 7px; font-size: 0.65rem; }
+.quantity-line { gap: 9px; padding-top: 2px; }
+.quantity-line strong { font-size: 0.96rem; }
+.company-order-quantity { gap: 9px; }
+.card-actions { gap: 6px; padding-top: 1px; }
+.card-actions .button, .requirement-card__decision-actions .button { min-height: 38px; padding: 7px 10px; font-size: 0.82rem; }
+.requirement-card__decision-actions { gap: 6px; }
+.requirement-card--staff-stamped { gap: 8px; }
+.requirement-card--staff-stamped .quantity-line { min-height: 34px; }
+.requirement-card--staff-stamped .quantity-line--value-only strong { font-size: 0.98rem; }
+.requirement-card--staff-stamped .card-actions { gap: 6px; }
+.catalogue-text-input { text-transform: uppercase; }
+.selection-list__heading { margin: 0; border-bottom: 1px solid var(--line); color: var(--muted); background: var(--surface-soft); padding: 7px 13px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; }
+.catalogue-search-result__copy { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.catalogue-search-result__copy strong { overflow-wrap: anywhere; color: var(--ink); font-size: 0.9rem; text-transform: uppercase; }
+.catalogue-search-result__copy small { overflow-wrap: anywhere; margin-top: 3px; color: var(--muted); font-size: 0.74rem; text-transform: uppercase; }

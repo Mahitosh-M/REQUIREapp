@@ -145,6 +145,10 @@ describe('requirement workflow permissions', () => {
     )));
     await assertSucceeds(getDoc(doc(staff, 'products/product_azee')));
     await assertSucceeds(getDocs(query(
+      collection(staff, 'products'),
+      where('active', '==', true)
+    )));
+    await assertSucceeds(getDocs(query(
       collection(staff, 'companies'),
       where('active', '==', true),
       orderBy('normalizedName', 'asc')

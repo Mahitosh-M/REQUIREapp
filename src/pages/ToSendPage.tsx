@@ -56,10 +56,9 @@ export const ToSendPage = () => {
                 requirement={requirement}
                 product={product}
                 company={product ? companyMap.get(product.companyId) : undefined}
-                label={`Send to ${getShopName(requirement.destinationShopId!)}`}
                 actions={<>
                   <button className="button button--danger-soft" type="button" onClick={() => setConfirming(requirement)}><PackageX size={18} />Not available</button>
-                  <button className="button button--outgoing" type="button" disabled={busyId === requirement.id} onClick={() => void sent(requirement)}><PlaneTakeoff size={18} />{busyId === requirement.id ? 'Sending...' : 'Sent'}</button>
+                  <button className="button button--success" type="button" disabled={busyId === requirement.id} onClick={() => void sent(requirement)}><PlaneTakeoff size={18} />{busyId === requirement.id ? 'Sending...' : 'Sent'}</button>
                 </>}
               />
             );

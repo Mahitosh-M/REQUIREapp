@@ -83,7 +83,7 @@ export const CompaniesPage = () => {
       {(adding || editing) ? (
         <Modal title={editing ? 'Edit company' : 'Add company'} onClose={closeForm}>
           <form onSubmit={save}>
-            <div className="modal__body"><Field label="Company name"><input value={name} onChange={(event) => setName(event.target.value)} maxLength={120} required autoFocus /></Field><FormError message={error} /></div>
+            <div className="modal__body"><Field label="Company name"><input className="catalogue-text-input" value={name} onChange={(event) => setName(event.target.value.toUpperCase())} maxLength={120} required autoFocus /></Field><FormError message={error} /></div>
             <div className="modal__actions"><button className="button button--ghost" type="button" onClick={closeForm}>Cancel</button><SubmitButton busy={busy}>{editing ? 'Save changes' : 'Add company'}</SubmitButton></div>
           </form>
         </Modal>

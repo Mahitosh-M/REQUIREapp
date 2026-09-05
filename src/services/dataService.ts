@@ -34,9 +34,11 @@ import {
   createCompanyId,
   createProductId,
   createRequirementId,
+  formatCatalogueText,
   normalizeCompanyName,
   normalizePackaging,
-  normalizeProductName
+  normalizeProductName,
+  rankProductSearch
 } from '../utils/normalization';
 import { normalizeQuantityReference, validateQuantityReference } from '../utils/workflow';
 
@@ -45,12 +47,18 @@ const COMPANIES = 'companies';
 const PRODUCTS = 'products';
 const REQUIREMENTS = 'requirements';
 const productCache = new Map<string, Product>();
+let activeProductSearchCache: Product[] | null = null;
+
+const invalidateProductCaches = (...productIds: string[]) => {
+  productIds.forEach((productId) => productCache.delete(productId));
+  activeProductSearchCache = null;
+};
 
 const mapCompany = (snapshot: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData>): Company => {
   const data = snapshot.data()!;
   return {
     id: snapshot.id,
-    name: String(data.name || ''),
+    name: formatCatalogueText(String(data.name || '')),
     normalizedName: String(data.normalizedName || ''),
     active: data.active === true,
     createdBy: String(data.createdBy || ''),
@@ -64,9 +72,9 @@ const mapProduct = (snapshot: QueryDocumentSnapshot<DocumentData> | DocumentSnap
   const product: Product = {
     id: snapshot.id,
     companyId: String(data.companyId || ''),
-    name: String(data.name || ''),
+    name: formatCatalogueText(String(data.name || '')),
     normalizedName: String(data.normalizedName || ''),
-    packaging: String(data.packaging || ''),
+    packaging: formatCatalogueText(String(data.packaging || '')),
     normalizedPackaging: String(data.normalizedPackaging || ''),
     catalogueKey: String(data.catalogueKey || ''),
     reviewStatus: data.reviewStatus === 'pending' ? 'pending' : 'approved',
@@ -155,7 +163,7 @@ export const createCompany = async (name: string, createdBy: string) => {
     const existing = await transaction.get(companyRef);
     if (existing.exists()) throw new Error('A company with this name already exists.');
     transaction.set(companyRef, {
-      name: name.trim(),
+      name: formatCatalogueText(name),
       normalizedName,
       active: true,
       createdBy,
@@ -167,7 +175,7 @@ export const createCompany = async (name: string, createdBy: string) => {
 };
 
 export const updateCompany = async (company: Company, changes: { name?: string; active?: boolean }) => {
-  const nextName = changes.name?.trim() || company.name;
+  const nextName = formatCatalogueText(changes.name || company.name);
   const normalizedName = normalizeCompanyName(nextName);
   if (normalizedName !== company.normalizedName) {
     const duplicate = await getDocs(query(
@@ -234,6 +242,16 @@ export const getProductsByIds = async (productIds: string[]) => {
   return products;
 };
 
+export const searchActiveProducts = async (searchText: string) => {
+  const term = normalizeProductName(searchText);
+  if (term.length < 2) return [];
+  if (!activeProductSearchCache) {
+    const snapshot = await getDocs(query(collection(db, PRODUCTS), where('active', '==', true)));
+    activeProductSearchCache = snapshot.docs.map(mapProduct);
+  }
+  return rankProductSearch(activeProductSearchCache, term).slice(0, 40);
+};
+
 const productPayload = (
   input: ProductInput,
   reviewStatus: ProductReviewStatus,
@@ -241,9 +259,9 @@ const productPayload = (
   createdByShopId: ShopId | null
 ) => ({
   companyId: input.companyId,
-  name: input.name.trim(),
+  name: formatCatalogueText(input.name),
   normalizedName: normalizeProductName(input.name),
-  packaging: input.packaging.trim(),
+  packaging: formatCatalogueText(input.packaging),
   normalizedPackaging: normalizePackaging(input.packaging),
   catalogueKey: createCatalogueKey(input.name, input.packaging),
   reviewStatus,
@@ -267,6 +285,7 @@ export const createProduct = async (
     if (existing.exists()) throw new Error('This product and packaging already exist for the selected company.');
     transaction.set(productRef, productPayload(input, reviewStatus, createdBy, createdByShopId));
   });
+  invalidateProductCaches(id);
   return id;
 };
 
@@ -286,15 +305,15 @@ export const saveProductChanges = async (
   }
   await updateDoc(doc(db, PRODUCTS, product.id), {
     companyId: input.companyId,
-    name: input.name.trim(),
+    name: formatCatalogueText(input.name),
     normalizedName: normalizeProductName(input.name),
-    packaging: input.packaging.trim(),
+    packaging: formatCatalogueText(input.packaging),
     normalizedPackaging: normalizePackaging(input.packaging),
     catalogueKey,
     reviewStatus,
     updatedAt: serverTimestamp()
   });
-  productCache.delete(product.id);
+  invalidateProductCaches(product.id);
 };
 
 export const setProductActive = async (product: Product, active: boolean) => {
@@ -313,7 +332,7 @@ export const setProductActive = async (product: Product, active: boolean) => {
     active,
     updatedAt: serverTimestamp()
   });
-  productCache.delete(product.id);
+  invalidateProductCaches(product.id);
 };
 
 interface CreateRequirementInput {
@@ -375,7 +394,7 @@ export const createProductAndRequirement = async (
       updatedAt: serverTimestamp()
     });
   });
-  productCache.delete(productId);
+  invalidateProductCaches(productId);
   return productId;
 };
 
@@ -575,8 +594,7 @@ export const mergeProduct = async (duplicate: Product, retained: Product) => {
       updatedAt: serverTimestamp()
     });
   });
-  productCache.delete(duplicate.id);
-  productCache.delete(retained.id);
+  invalidateProductCaches(duplicate.id, retained.id);
 };
 
 export const getUsers = async () => {

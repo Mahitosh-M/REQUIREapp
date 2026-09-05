@@ -142,8 +142,8 @@ export const ProductReviewPage = () => {
             <form onSubmit={editAndApprove}>
               <div className="modal__body compact-form">
                 <Field label="Company"><select value={companyId} onChange={(event) => setCompanyId(event.target.value)}>{companies.filter((company) => company.active || company.id === companyId).map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select></Field>
-                <Field label="Product name"><input value={name} onChange={(event) => setName(event.target.value)} maxLength={160} required autoFocus /></Field>
-                <Field label="Packaging"><input value={packaging} onChange={(event) => setPackaging(event.target.value)} maxLength={100} required /></Field>
+                <Field label="Product name"><input className="catalogue-text-input" value={name} onChange={(event) => setName(event.target.value.toUpperCase())} maxLength={160} required autoFocus /></Field>
+                <Field label="Packaging"><input className="catalogue-text-input" value={packaging} onChange={(event) => setPackaging(event.target.value.toUpperCase())} maxLength={100} required /></Field>
                 <FormError message={error} />
               </div>
               <div className="modal__actions"><button className="button button--ghost" type="button" onClick={() => setEditing(false)}>Back</button><SubmitButton busy={busy}>Save & approve</SubmitButton></div>

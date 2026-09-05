@@ -56,10 +56,6 @@ export const ProductsPage = () => {
   const [error, setError] = useState('');
   const toast = useToast();
 
-  useEffect(() => {
-    if (!companyId && companies.length) setCompanyId((companies.find((row) => row.active) || companies[0]).id);
-  }, [companies, companyId]);
-
   const reload = async (targetCompanyId = companyId) => {
     if (!targetCompanyId) return;
     setLoading(true);
@@ -191,8 +187,8 @@ export const ProductsPage = () => {
           <form onSubmit={save}>
             <div className="modal__body compact-form">
               <Field label="Company"><select value={form.companyId} onChange={(event) => setForm((current) => ({ ...current, companyId: event.target.value }))} required>{companies.filter((company) => company.active || company.id === form.companyId).map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select></Field>
-              <Field label="Product name"><input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} maxLength={160} required autoFocus /></Field>
-              <Field label="Packaging"><input value={form.packaging} onChange={(event) => setForm((current) => ({ ...current, packaging: event.target.value }))} maxLength={100} required /></Field>
+              <Field label="Product name"><input className="catalogue-text-input" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value.toUpperCase() }))} maxLength={160} required autoFocus /></Field>
+              <Field label="Packaging"><input className="catalogue-text-input" value={form.packaging} onChange={(event) => setForm((current) => ({ ...current, packaging: event.target.value.toUpperCase() }))} maxLength={100} required /></Field>
               <Field label="Review status"><select value={form.reviewStatus} onChange={(event) => setForm((current) => ({ ...current, reviewStatus: event.target.value as ProductReviewStatus }))}><option value="approved">Approved</option><option value="pending">Pending Review</option></select></Field>
               <FormError message={error} />
             </div>

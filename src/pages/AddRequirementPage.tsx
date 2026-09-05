@@ -9,6 +9,7 @@ import {
   createRequirement,
   DuplicateRequirementError,
   getFriendlyDataError,
+  searchActiveProducts,
   updateRequirementQuantity
 } from '../services/dataService';
 import type { Company, Product, Requirement } from '../types';
@@ -17,9 +18,11 @@ import { validateQuantityReference } from '../utils/workflow';
 
 export const AddRequirementPage = () => {
   const { profile, actingShopId } = useAuth();
-  const { companies, loading: companiesLoading, loadProducts, invalidateProducts } = useCatalogue();
+  const { companies, companyMap, loading: companiesLoading, loadProducts, invalidateProducts } = useCatalogue();
   const navigate = useNavigate();
   const [companySearch, setCompanySearch] = useState('');
+  const [catalogueMatches, setCatalogueMatches] = useState<Product[]>([]);
+  const [catalogueSearchLoading, setCatalogueSearchLoading] = useState(false);
   const [company, setCompany] = useState<Company | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
@@ -33,6 +36,26 @@ export const AddRequirementPage = () => {
   const [error, setError] = useState('');
   const [duplicate, setDuplicate] = useState<Requirement | null>(null);
   const [duplicateQuantity, setDuplicateQuantity] = useState('');
+
+  useEffect(() => {
+    if (company || normalizeCompanyName(companySearch).length < 2) {
+      setCatalogueMatches([]);
+      setCatalogueSearchLoading(false);
+      return undefined;
+    }
+    let active = true;
+    const timer = window.setTimeout(() => {
+      setCatalogueSearchLoading(true);
+      void searchActiveProducts(companySearch)
+        .then((rows) => { if (active) setCatalogueMatches(rows); })
+        .catch((loadError) => { if (active) setError(getFriendlyDataError(loadError)); })
+        .finally(() => { if (active) setCatalogueSearchLoading(false); });
+    }, 220);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [company, companySearch]);
 
   useEffect(() => {
     if (!company) return;
@@ -129,12 +152,29 @@ export const AddRequirementPage = () => {
       {!actingShopId ? <FormError message="Choose an operational shop before adding a requirement." /> : null}
       {!company ? (
         <section className="selection-panel">
-          <SearchField value={companySearch} onChange={setCompanySearch} placeholder="Search companies" label="Search companies" />
+          <SearchField value={companySearch} onChange={setCompanySearch} placeholder="Search companies or products" label="Search companies or products" />
           {companiesLoading ? <LoadingState label="Loading companies" /> : (
+            <>
             <div className="selection-list">
+              {companyResults.length ? <p className="selection-list__heading">Companies</p> : null}
               {companyResults.map((row) => <button type="button" key={row.id} onClick={() => { setCompany(row); setCompanySearch(''); }}><span className="selection-icon"><Building2 size={19} /></span><strong>{row.name}</strong><ChevronRight size={18} /></button>)}
-              {!companyResults.length ? <p className="selection-empty">No active companies found.</p> : null}
+              {catalogueMatches.length ? <p className="selection-list__heading">Products</p> : null}
+              {catalogueMatches.map((row) => {
+                const productCompany = companyMap.get(row.companyId);
+                if (!productCompany?.active) return null;
+                return (
+                  <button type="button" key={row.id} onClick={() => { setCompany(productCompany); setProduct(row); setProductSearch(row.name); setCompanySearch(''); }}>
+                    <span className="selection-icon"><Package size={19} /></span>
+                    <span className="catalogue-search-result__copy"><strong>{row.name}</strong><small>{productCompany.name} - {row.packaging}</small></span>
+                    <ChevronRight size={18} />
+                  </button>
+                );
+              })}
+              {catalogueSearchLoading ? <p className="selection-empty">Searching products...</p> : null}
+              {!companiesLoading && !catalogueSearchLoading && !companyResults.length && !catalogueMatches.length ? <p className="selection-empty">No matching companies or products found.</p> : null}
             </div>
+            <FormError message={error} />
+            </>
           )}
         </section>
       ) : (
@@ -151,7 +191,7 @@ export const AddRequirementPage = () => {
               ))}
             </div>
           )}
-          {!productsLoading && productSearch.trim() ? <button className="add-new-product" type="button" onClick={() => { setShowNewProduct(true); setProduct(null); setNewName(productSearch); setError(''); }}><Plus size={19} /><span><strong>Add new product</strong><small>Under {company.name}</small></span></button> : null}
+          {!productsLoading && productSearch.trim() ? <button className="add-new-product" type="button" onClick={() => { setShowNewProduct(true); setProduct(null); setNewName(productSearch.toUpperCase()); setError(''); }}><Plus size={19} /><span><strong>Add new product</strong><small>Under {company.name}</small></span></button> : null}
 
           {product && !showNewProduct ? (
             <form className="compact-form form-band" onSubmit={addExisting}>
@@ -166,8 +206,8 @@ export const AddRequirementPage = () => {
             <form className="compact-form form-band" onSubmit={addNew}>
               <div className="step-label"><span>2</span><strong>Create product and requirement</strong></div>
               <div className="form-grid form-grid--2">
-                <Field label="Product name"><input value={newName} onChange={(event) => setNewName(event.target.value)} maxLength={160} required /></Field>
-                <Field label="Packaging"><input value={newPackaging} onChange={(event) => setNewPackaging(event.target.value)} maxLength={100} placeholder="Example: 10 x 10" required /></Field>
+                <Field label="Product name"><input className="catalogue-text-input" value={newName} onChange={(event) => setNewName(event.target.value.toUpperCase())} maxLength={160} required /></Field>
+                <Field label="Packaging"><input className="catalogue-text-input" value={newPackaging} onChange={(event) => setNewPackaging(event.target.value.toUpperCase())} maxLength={100} placeholder="Example: 10 x 10" required /></Field>
               </div>
               <Field label="Qty reference"><input value={quantity} onChange={(event) => setQuantity(event.target.value)} maxLength={40} placeholder="Example: 5 boxes" required /></Field>
               <FormError message={error} />

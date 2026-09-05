@@ -5,6 +5,12 @@ const normalizeBase = (value: string) => value
   .trim()
   .toLowerCase();
 
+export const formatCatalogueText = (value: string) => value
+  .normalize('NFKC')
+  .trim()
+  .replace(/\s+/g, ' ')
+  .toUpperCase();
+
 export const normalizeCompanyName = (value: string) => normalizeBase(value)
   .replace(/[._-]+/g, ' ')
   .replace(/\s+/g, ' ');
