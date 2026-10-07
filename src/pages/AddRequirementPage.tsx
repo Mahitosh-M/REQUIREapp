@@ -197,7 +197,6 @@ export const AddRequirementPage = () => {
             <form className="compact-form form-band" onSubmit={addExisting}>
               <div className="step-label"><span>2</span><strong>Quantity reference</strong></div>
               <Field label="Qty reference"><input value={quantity} onChange={(event) => setQuantity(event.target.value)} maxLength={40} placeholder="Example: 5 boxes" required /></Field>
-              <button className="add-new-product" type="button" onClick={() => { setShowNewProduct(true); setProduct(null); setNewName(productSearch.toUpperCase()); setError(''); }}><Plus size={19} /><span><strong>Add new product</strong><small>Under {company.name}</small></span></button>
               <FormError message={error} />
               <SubmitButton busy={busy}>Add requirement</SubmitButton>
             </form>
