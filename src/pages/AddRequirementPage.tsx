@@ -191,7 +191,7 @@ export const AddRequirementPage = () => {
               ))}
             </div>
           )}
-          {!productsLoading && productSearch.trim() && !product && !showNewProduct ? <button className="add-new-product" type="button" onClick={() => { setShowNewProduct(true); setNewName(productSearch.toUpperCase()); setError(''); }}><Plus size={19} /><span><strong>Add new product</strong><small>Under {company.name}</small></span></button> : null}
+          {!productsLoading && productSearch.trim() && productResults.length === 0 && !product && !showNewProduct ? <button className="add-new-product" type="button" onClick={() => { setShowNewProduct(true); setNewName(productSearch.toUpperCase()); setError(''); }}><Plus size={19} /><span><strong>Add new product</strong><small>Under {company.name}</small></span></button> : null}
 
           {product && !showNewProduct ? (
             <form className="compact-form form-band" onSubmit={addExisting}>
