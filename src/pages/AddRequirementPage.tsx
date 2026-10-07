@@ -156,8 +156,6 @@ export const AddRequirementPage = () => {
           {companiesLoading ? <LoadingState label="Loading companies" /> : (
             <>
             <div className="selection-list">
-              {companyResults.length ? <p className="selection-list__heading">Companies</p> : null}
-              {companyResults.map((row) => <button type="button" key={row.id} onClick={() => { setCompany(row); setCompanySearch(''); }}><span className="selection-icon"><Building2 size={19} /></span><strong>{row.name}</strong><ChevronRight size={18} /></button>)}
               {catalogueMatches.length ? <p className="selection-list__heading">Products</p> : null}
               {catalogueMatches.map((row) => {
                 const productCompany = companyMap.get(row.companyId);
@@ -170,6 +168,8 @@ export const AddRequirementPage = () => {
                   </button>
                 );
               })}
+              {companyResults.length ? <p className="selection-list__heading">Companies</p> : null}
+              {companyResults.map((row) => <button type="button" key={row.id} onClick={() => { setCompany(row); setCompanySearch(''); }}><span className="selection-icon"><Building2 size={19} /></span><strong>{row.name}</strong><ChevronRight size={18} /></button>)}
               {catalogueSearchLoading ? <p className="selection-empty">Searching products...</p> : null}
               {!companiesLoading && !catalogueSearchLoading && !companyResults.length && !catalogueMatches.length ? <p className="selection-empty">No matching companies or products found.</p> : null}
             </div>
@@ -191,12 +191,13 @@ export const AddRequirementPage = () => {
               ))}
             </div>
           )}
-          {!productsLoading && productSearch.trim() ? <button className="add-new-product" type="button" onClick={() => { setShowNewProduct(true); setProduct(null); setNewName(productSearch.toUpperCase()); setError(''); }}><Plus size={19} /><span><strong>Add new product</strong><small>Under {company.name}</small></span></button> : null}
+          {!productsLoading && productSearch.trim() && !product && !showNewProduct ? <button className="add-new-product" type="button" onClick={() => { setShowNewProduct(true); setNewName(productSearch.toUpperCase()); setError(''); }}><Plus size={19} /><span><strong>Add new product</strong><small>Under {company.name}</small></span></button> : null}
 
           {product && !showNewProduct ? (
             <form className="compact-form form-band" onSubmit={addExisting}>
               <div className="step-label"><span>2</span><strong>Quantity reference</strong></div>
               <Field label="Qty reference"><input value={quantity} onChange={(event) => setQuantity(event.target.value)} maxLength={40} placeholder="Example: 5 boxes" required /></Field>
+              <button className="add-new-product" type="button" onClick={() => { setShowNewProduct(true); setProduct(null); setNewName(productSearch.toUpperCase()); setError(''); }}><Plus size={19} /><span><strong>Add new product</strong><small>Under {company.name}</small></span></button>
               <FormError message={error} />
               <SubmitButton busy={busy}>Add requirement</SubmitButton>
             </form>
